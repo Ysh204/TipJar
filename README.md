@@ -4,7 +4,9 @@ A creator tipping platform built on Solana, powered by MPC (Multi-Party Computat
 
 ## Demo
 
-<video src="demo.mp4" width="80%" controls></video>
+[Watch Demo Here](./demo.mp4)
+
+--
 
 
 ## Project Structure
