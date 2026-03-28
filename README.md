@@ -1,10 +1,6 @@
 # TipJar — Creator Tipping Platform
 
-A creator tipping platform built on Solana, powered by MPC (Multi-Party Computation) wallets. Creators get secure wallets, fans tip in SOL, and revenue splits automatically distribute to collaborators and the platform — all with on-chain transparency in a single, atomic transaction.
-
-## Demo
-
-[Watch Demo Here](./demo.mp4)
+A creator tipping platform built on Solana, powered by MPC (Multi-Party Computation) wallets. Creators get secure wallets, fans tip in SOL And Can Stake Sol as well.
 
 ---
 
