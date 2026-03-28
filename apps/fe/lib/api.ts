@@ -12,14 +12,14 @@ async function handle(res: Response) {
   return res.json();
 }
 
-export async function signin(body: { email: string; password: string }): Promise<string> {
+export async function signin(body: { email: string; password: string }): Promise<{ token: string, user: { id: string, role: string } }> {
   const res = await fetch(`${BASE}/user/signin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   const j = await handle(res);
-  return j.token as string;
+  return { token: j.token, user: j.user };
 }
 
 /* ── Profile ────────────────────────────────── */
@@ -69,7 +69,7 @@ export interface CreatorDetail extends Creator {
     message: string | null;
     signature: string | null;
     createdAt: string;
-    fromUser: { displayName: string | null };
+    fromUser: { displayName: string | null; avatarUrl: string | null };
   }[];
   splits: { label: string; percentage: number; collaboratorAddress: string }[];
 }

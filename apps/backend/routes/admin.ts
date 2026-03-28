@@ -42,7 +42,7 @@ router.post("/signin", async (req, res) => {
         return;
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.ADMIN_JWT_SECRET!);
+    const token = jwt.sign({ userId: user.id }, process.env.ADMIN_JWT_SECRET!, { expiresIn: "1d" });
     res.json({ token });
 });
 

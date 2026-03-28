@@ -16,7 +16,9 @@ export default {
           700: "#0758b4",
           800: "#073f80",
           900: "#072a55"
-        }
+        },
+        "electric-purple": "var(--electric-purple)",
+        "cyan-accent": "var(--cyan-accent)",
       }
     }
   },

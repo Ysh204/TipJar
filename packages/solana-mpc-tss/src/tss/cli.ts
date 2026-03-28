@@ -196,6 +196,109 @@ export class TSSCli {
   }
 
   /**
+   * Start aggregate signing with multiple recipients
+   */
+  async aggregateSignStepOneMulti(
+    participantSecretHex: string,
+    recipients: { to: string; amount: number; lamports?: number }[],
+    from: string, // The aggregated public key of the user
+    memo?: string,
+    recentBlockhash?: string
+  ): Promise<{
+    secretNonce: string;
+    publicNonce: string;
+    participantKey: string;
+  }> {
+    const participantSecret = new Uint8Array(Buffer.from(participantSecretHex, 'hex'));
+    const fromPublicKey = TSSWallet.validatePublicKey(from);
+    const blockHash = recentBlockhash || await this.wallet.getRecentBlockhash();
+
+    const transactionDetails: TSSTransactionDetails = {
+      amount: 0, // Not used when recipients are present
+      to: fromPublicKey, // Not used but required by type
+      from: fromPublicKey,
+      network: this.wallet.getCurrentNetwork(),
+      memo,
+      recentBlockhash: blockHash,
+      recipients: recipients.map(r => ({
+        to: TSSWallet.validatePublicKey(r.to),
+        amount: r.amount,
+        lamports: r.lamports
+      }))
+    };
+
+    const stepOneData = await this.signingService.aggregateSignStepOne(
+      participantSecret,
+      transactionDetails
+    );
+
+    return {
+      secretNonce: Buffer.from(stepOneData.secretNonce).toString('hex'),
+      publicNonce: Buffer.from(stepOneData.publicNonce).toString('hex'),
+      participantKey: stepOneData.participantKey.toString()
+    };
+  }
+
+  /**
+   * Step 2 of aggregate signing with multiple recipients
+   */
+  async aggregateSignStepTwoMulti(
+    stepOneDataJson: string,
+    participantSecretHex: string,
+    recipients: { to: string; amount: number; lamports?: number }[],
+    from: string,
+    allPublicNoncesHex: string[],
+    memo?: string,
+    recentBlockhash?: string
+  ): Promise<{
+    partialSignature: string;
+    publicNonce: string;
+    participantKey: string;
+  }> {
+    const stepOneData: AggSignStepOneData = {
+      secretNonce: new Uint8Array(Buffer.from(JSON.parse(stepOneDataJson).secretNonce, 'hex')),
+      publicNonce: new Uint8Array(Buffer.from(JSON.parse(stepOneDataJson).publicNonce, 'hex')),
+      participantKey: TSSWallet.validatePublicKey(JSON.parse(stepOneDataJson).participantKey)
+    };
+
+    const participantSecret = new Uint8Array(Buffer.from(participantSecretHex, 'hex'));
+    const fromPublicKey = TSSWallet.validatePublicKey(from);
+    const blockHash = recentBlockhash || await this.wallet.getRecentBlockhash();
+
+    const transactionDetails: TSSTransactionDetails = {
+      amount: 0,
+      to: fromPublicKey,
+      from: fromPublicKey,
+      network: this.wallet.getCurrentNetwork(),
+      memo,
+      recentBlockhash: blockHash,
+      recipients: recipients.map(r => ({
+        to: TSSWallet.validatePublicKey(r.to),
+        amount: r.amount,
+        lamports: r.lamports
+      }))
+    };
+
+    const allPublicNonces = allPublicNoncesHex.map(hex => 
+      new Uint8Array(Buffer.from(hex, 'hex'))
+    );
+
+    const stepTwoData = await this.signingService.aggregateSignStepTwo(
+      stepOneData,
+      participantSecret,
+      transactionDetails,
+      allPublicNonces
+    );
+
+    return {
+      partialSignature: Buffer.from(stepTwoData.partialSignature).toString('hex'),
+      publicNonce: Buffer.from(stepTwoData.publicNonce).toString('hex'),
+      participantKey: stepTwoData.participantKey.toString()
+    };
+  }
+
+
+  /**
    * Aggregate all the partial signatures together and send transaction
    * solana-tss aggregate-signatures-and-broadcast <partial_signatures> <transaction_details> <aggregate_wallet>
    */
@@ -213,11 +316,17 @@ export class TSSCli {
     const txDetailsRaw = JSON.parse(transactionDetailsJson);
     const transactionDetails: TSSTransactionDetails = {
       amount: txDetailsRaw.amount,
+      lamports: txDetailsRaw.lamports,
       to: TSSWallet.validatePublicKey(txDetailsRaw.to),
       from: TSSWallet.validatePublicKey(txDetailsRaw.from),
       network: txDetailsRaw.network,
       memo: txDetailsRaw.memo,
-      recentBlockhash: txDetailsRaw.recentBlockhash
+      recentBlockhash: txDetailsRaw.recentBlockhash,
+      recipients: txDetailsRaw.recipients ? txDetailsRaw.recipients.map((r: any) => ({
+        to: TSSWallet.validatePublicKey(r.to),
+        amount: r.amount,
+        lamports: r.lamports
+      })) : undefined
     };
 
     const aggregateWalletRaw = JSON.parse(aggregateWalletJson);

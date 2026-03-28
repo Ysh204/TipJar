@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { createMPCSigner } from '../mpc/ed25519';
 import { 
   TSSTransactionDetails, 
@@ -152,15 +152,39 @@ export class TSSSigningService {
    * Create a transaction from transaction details
    */
   private async createTransactionFromDetails(details: TSSTransactionDetails): Promise<Transaction> {
-    const tx = await createTransferTx(
-      this.connection,
-      details.from,
-      details.to,
-      details.amount
-    );
+    const from = details.from;
+    const { blockhash } = await this.connection.getLatestBlockhash();
+    const tx = new Transaction({ recentBlockhash: details.recentBlockhash || blockhash, feePayer: from });
 
-    // Set the specific blockhash
-    tx.recentBlockhash = details.recentBlockhash;
+    if (details.recipients && details.recipients.length > 0) {
+      // Multiple recipients (Revenue Splits + Fees)
+      for (const recipient of details.recipients) {
+        const lamports = recipient.lamports !== undefined 
+          ? recipient.lamports 
+          : Math.round(recipient.amount * LAMPORTS_PER_SOL);
+
+        tx.add(
+          SystemProgram.transfer({
+            fromPubkey: from,
+            toPubkey: recipient.to,
+            lamports
+          })
+        );
+      }
+    } else {
+      // Single recipient (Classic Tip)
+      const lamports = details.lamports !== undefined 
+        ? details.lamports 
+        : Math.round(details.amount * LAMPORTS_PER_SOL);
+
+      tx.add(
+        SystemProgram.transfer({
+          fromPubkey: from,
+          toPubkey: details.to,
+          lamports
+        })
+      );
+    }
 
     // Add memo if provided
     if (details.memo) {

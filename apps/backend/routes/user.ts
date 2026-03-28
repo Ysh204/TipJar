@@ -33,8 +33,8 @@ router.post("/signin", async (req, res) => {
         return;
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
-    res.json({ token });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
+    res.json({ token, user: { id: user.id, role: user.role } });
 });
 
 // Get current user's profile
@@ -108,7 +108,7 @@ router.get("/creator/:id", authMiddleware, async (req, res) => {
             _count: { select: { tipsReceived: true } },
             tipsReceived: {
                 select: { id: true, amount: true, message: true, signature: true, createdAt: true,
-                    fromUser: { select: { displayName: true } }
+                    fromUser: { select: { displayName: true, avatarUrl: true } }
                 },
                 orderBy: { createdAt: "desc" },
                 take: 20
@@ -133,7 +133,10 @@ router.get("/creator/:id", authMiddleware, async (req, res) => {
     });
 });
 
-// Tip a creator (MPC signing)
+import { PLATFORM_WALLET, PLATFORM_FEE_PERCENT } from "common/solana";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+
+// Tip a creator (MPC signing with Splits and Platform Fee)
 router.post("/tip", authMiddleware, async (req, res) => {
     const { success, data } = TipSchema.safeParse(req.body);
     if (!success) {
@@ -143,7 +146,10 @@ router.post("/tip", authMiddleware, async (req, res) => {
 
     const [user, creator] = await Promise.all([
         prismaClient.user.findFirst({ where: { id: req.userId } }),
-        prismaClient.user.findFirst({ where: { id: data.toCreatorId, role: "CREATOR" } })
+        prismaClient.user.findFirst({ 
+            where: { id: data.toCreatorId, role: "CREATOR" },
+            include: { splits: true }
+        })
     ]);
 
     if (!user || !user.publicKey) {
@@ -157,39 +163,86 @@ router.post("/tip", authMiddleware, async (req, res) => {
 
     try {
         const blockhash = await cli.recentBlockHash();
+        const totalAmount = data.amount;
 
-        // MPC signing - Step 1
+        // --- Calculate Distribution (Lamport Precision) ---
+        const totalLamports = Math.round(data.amount * LAMPORTS_PER_SOL);
+        const platformFeeLamports = Math.round(totalLamports * PLATFORM_FEE_PERCENT);
+        const remainingForSplits = totalLamports - platformFeeLamports;
+        
+        const recipients: { to: string; amount: number; lamports: number }[] = [
+            { 
+                to: PLATFORM_WALLET, 
+                amount: platformFeeLamports / LAMPORTS_PER_SOL, 
+                lamports: platformFeeLamports 
+            }
+        ];
+
+        if (creator.splits.length > 0) {
+            let distributedSplitsLamports = 0;
+            creator.splits.forEach(s => {
+                const shareLamports = Math.floor((s.percentage / 100) * remainingForSplits);
+                recipients.push({ 
+                    to: s.collaboratorAddress, 
+                    amount: shareLamports / LAMPORTS_PER_SOL, 
+                    lamports: shareLamports 
+                });
+                distributedSplitsLamports += shareLamports;
+            });
+            // Remaining absolute dust goes to creator
+            const creatorShareLamports = remainingForSplits - distributedSplitsLamports;
+            recipients.push({ 
+                to: creator.publicKey, 
+                amount: creatorShareLamports / LAMPORTS_PER_SOL, 
+                lamports: creatorShareLamports 
+            });
+        } else {
+            // No splits, creator gets everything after fee
+            recipients.push({ 
+                to: creator.publicKey, 
+                amount: remainingForSplits / LAMPORTS_PER_SOL, 
+                lamports: remainingForSplits 
+            });
+        }
+
+        // --- MPC Signing Multi-Recipient ---
+
+        // Step 1
         const step1Responses = await Promise.all(MPC_SERVERS.map(async (server) => {
-            const response = await axios.post(`${server}/send/step-1`, {
-                to: creator.publicKey,
-                amount: data.amount,
+            const response = await axios.post(`${server}/send-multi/step-1`, {
+                recipients,
                 userId: req.userId,
-                recentBlockhash: blockhash
+                from: user.publicKey,
+                recentBlockhash: blockhash,
+                memo: data.message
             })
             return response.data.response;
         }))
 
-        // MPC signing - Step 2
+        // Step 2
         const step2Responses = await Promise.all(MPC_SERVERS.map(async (server, index) => {
-            const response = await axios.post(`${server}/send/step-2`, {
-                to: creator.publicKey,
-                amount: data.amount,
+            const response = await axios.post(`${server}/send-multi/step-2`, {
+                recipients,
                 userId: req.userId,
+                from: user.publicKey,
                 recentBlockhash: blockhash,
                 step1Response: JSON.stringify(step1Responses[index]),
-                allPublicNonces: step1Responses.map((r) => r.publicNonce)
+                allPublicNonces: step1Responses.map((r) => r.publicNonce),
+                memo: data.message
             })
             return response.data;
         }))
 
         const partialSignatures = step2Responses.map((r) => r.response);
         const transactionDetails = {
-            amount: data.amount,
-            to: creator.publicKey,
+            amount: totalAmount,
+            lamports: totalLamports,
+            to: creator.publicKey, // Legacy field, keeping for compatibility
             from: user.publicKey,
             network: NETWORK,
-            memo: undefined,
-            recentBlockhash: blockhash
+            memo: data.message || undefined,
+            recentBlockhash: blockhash,
+            recipients // The new multi-recipient field
         };
 
         const signature = await cli.aggregateSignaturesAndBroadcast(
@@ -219,6 +272,7 @@ router.post("/tip", authMiddleware, async (req, res) => {
         res.status(500).json({ message: "Transaction failed: " + (e?.message || "Unknown error") });
     }
 });
+
 
 // Send SOL (General transfer from wallet page)
 router.post("/send", authMiddleware, async (req, res) => {

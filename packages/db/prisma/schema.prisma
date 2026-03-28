@@ -29,6 +29,7 @@ model User {
   tipsReceived Tip[]          @relation("TipTo")
   splits       RevenueSplit[]
   createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 enum Role {
@@ -47,6 +48,11 @@ model Tip {
   fromUser      User     @relation("TipFrom", fields: [fromUserId], references: [id])
   toCreator     User     @relation("TipTo", fields: [toCreatorId], references: [id])
   createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([fromUserId])
+  @@index([toCreatorId])
+  @@index([createdAt])
 }
 
 model RevenueSplit {

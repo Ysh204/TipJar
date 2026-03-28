@@ -43,7 +43,7 @@ app.post("/send/step-1", async (req, res) => {
         user.secretKey,
         to,
         amount,
-        undefined, // Optional memo
+        req.body.memo, // Pass memo if present
         recentBlockhash
     );
 
@@ -76,7 +76,54 @@ app.post("/send/step-2", async (req, res) => {
         to,
         amount,
         allPublicNonces,
-        undefined,
+        req.body.memo,
+        recentBlockhash
+    );
+
+    res.json({
+        response,
+        publicKey: user.publicKey
+    })
+})
+
+app.post("/send-multi/step-1", async (req, res) => {
+    const {recipients, userId, from, recentBlockhash} = req.body;
+    const user = await prismaClient.keyShare.findFirst({
+        where: {userId}
+    })
+    if (!user) {
+        res.status(403).json({ message: "User not found" })
+        return
+    }
+
+    const response = await cli.aggregateSignStepOneMulti(
+        user.secretKey,
+        recipients,
+        from,
+        req.body.memo,
+        recentBlockhash
+    );
+
+    res.json({ response })
+})
+
+app.post("/send-multi/step-2", async (req, res) => {
+    const {recipients, userId, from, recentBlockhash, step1Response, allPublicNonces} = req.body;
+    const user = await prismaClient.keyShare.findFirst({
+        where: {userId}
+    })
+    if (!user) {
+        res.status(403).json({ message: "User not found" })
+        return
+    }
+
+    const response = await cli.aggregateSignStepTwoMulti(
+        step1Response,
+        user.secretKey,
+        recipients,
+        from,
+        allPublicNonces,
+        req.body.memo,
         recentBlockhash
     );
 

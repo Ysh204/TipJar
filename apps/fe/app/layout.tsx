@@ -6,10 +6,15 @@ export const metadata: Metadata = {
   description: "Support your favorite creators with instant SOL tips, secured by MPC wallets.",
 };
 
+import GlobalBackground from "../components/layout/GlobalBackground";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased font-sans flex flex-col min-h-screen" suppressHydrationWarning>
+        <GlobalBackground />
+        {children}
+      </body>
     </html>
   );
 }

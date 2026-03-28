@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import RequireAuth from "../../../components/RequireAuth";
 import { useWallet, useTransactions } from "../../../hooks/wallet";
 import { sendSol } from "../../../lib/api";
+import ScrollReveal from "../../../components/ScrollReveal";
 
 /* ── tiny helpers ─────────────────────────────────────────── */
 
@@ -55,7 +56,7 @@ function AccountInfo({ publicKey, balance, network, loading, onRefresh }: {
         <div className="flex justify-between items-center">
           <span className="cell-label">Main Account (MPC)</span>
           <button className={`btn btn-ghost p-1 ${loading ? 'spin' : ''}`} onClick={onRefresh} disabled={loading}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" /></svg>
           </button>
         </div>
         <div className="cell-value">{loading ? '────────────────────────' : publicKey}</div>
@@ -70,9 +71,9 @@ function AccountInfo({ publicKey, balance, network, loading, onRefresh }: {
           <span className="text-3xl font-black text-white">
             {loading ? '…' : balance.toFixed(6)}
           </span>
-          <span className="text-sm font-bold text-[#00f0ff]">SOL</span>
+          <span className="text-sm font-bold text-teal-400">SOL</span>
         </div>
-        <div className="text-[10px] uppercase tracking-widest text-muted-foreground opacity-50">
+        <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">
           Network: {network}
         </div>
       </div>
@@ -106,12 +107,14 @@ function SendForm({ onStatus }: { onStatus: (kind: 'success' | 'error' | 'loadin
   return (
     <div className="card mt-6" id="send-sol">
       <div className="flex items-center gap-3 mb-6">
-         <span className="text-xl">🚀</span>
-         <h2 className="text-lg font-bold uppercase tracking-widest">Send SOL</h2>
+        <div className="w-8 h-8 rounded-lg bg-teal-400/10 flex items-center justify-center border border-teal-400/20">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-400"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+        </div>
+        <h2 className="text-lg font-bold uppercase tracking-widest text-white">Send SOL</h2>
       </div>
       <form onSubmit={handleSend} className="flex flex-col gap-4">
         <div>
-          <label className="text-[10px] uppercase tracking-widest text-[#a0a0b0] font-bold block mb-2">Recipient Address</label>
+          <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block mb-2">Recipient Address</label>
           <input
             className="input"
             placeholder="Solana Public Key"
@@ -121,7 +124,7 @@ function SendForm({ onStatus }: { onStatus: (kind: 'success' | 'error' | 'loadin
           />
         </div>
         <div>
-          <label className="text-[10px] uppercase tracking-widest text-[#a0a0b0] font-bold block mb-2">Amount (SOL)</label>
+          <label className="text-[10px] uppercase tracking-widest text-slate-400 font-bold block mb-2">Amount (SOL)</label>
           <input
             className="input"
             type="number"
@@ -143,10 +146,12 @@ function SendForm({ onStatus }: { onStatus: (kind: 'success' | 'error' | 'loadin
 
 function TransactionList({ transactions, loading }: { transactions: any[]; loading: boolean }) {
   return (
-    <div className="card h-full" id="history">
+    <div className="card h-full flex flex-col" id="history">
       <div className="flex items-center gap-3 mb-6">
-         <span className="text-xl">📊</span>
-         <h2 className="text-lg font-bold uppercase tracking-widest">History</h2>
+        <div className="w-8 h-8 rounded-lg bg-indigo-400/10 flex items-center justify-center border border-indigo-400/20">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
+        </div>
+        <h2 className="text-lg font-bold uppercase tracking-widest text-white">History</h2>
       </div>
 
       {loading ? (
@@ -171,13 +176,13 @@ function TransactionList({ transactions, loading }: { transactions: any[]; loadi
             >
               <div className="flex flex-col gap-1 overflow-hidden">
                 <span className="font-mono text-xs text-white truncate">{shortAddr(tx.signature)}</span>
-                <span className="text-[10px] text-[#a0a0b0]">{fmtTime(tx.blockTime)}</span>
+                <span className="text-[10px] text-slate-400">{fmtTime(tx.blockTime)}</span>
               </div>
               <div className="flex items-center gap-2">
-                 <span className={`text-[10px] px-2 py-0.5 rounded-full border ${tx.err ? 'border-red-500/30 text-red-400' : 'border-emerald-500/30 text-emerald-400'}`}>
-                    {tx.err ? 'Failed' : 'Success'}
-                 </span>
-                 <span className="text-[#00f0ff] opacity-50">↗</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${tx.err ? 'border-red-500/30 text-red-400 bg-red-500/10' : 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10'}`}>
+                  {tx.err ? 'Failed' : 'Success'}
+                </span>
+                <span className="text-teal-400 opacity-50"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg></span>
               </div>
             </a>
           ))}
@@ -201,16 +206,16 @@ export default function WalletPage() {
 
   return (
     <RequireAuth>
-      <div className="max-w-5xl mx-auto" id="wallet-dashboard">
+      <div className="max-w-7xl mx-auto w-full" id="wallet-dashboard">
         {/* Header Section */}
         <header className="text-center mb-12 relative">
-          <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl landing-gradient">
-            MPC Wallet
+          <h1 className="text-4xl font-black tracking-tight sm:text-5xl text-white drop-shadow-lg">
+            Solana <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-purple to-cyan-accent text-glow-staking">Wallet</span>
           </h1>
-          <p className="text-[#a0a0b0] mt-2 font-medium">Enterprise-grade security across multiple nodes</p>
-          <div className="inline-flex items-center gap-2 mt-6 px-4 py-1.5 rounded-full bg-black/40 border border-[#00f0ff]/30 backdrop-blur-md shadow-[0_0_20px_rgba(0,240,255,0.1)]">
-             <span className="w-2 h-2 rounded-full bg-[#00ff9d] animate-pulse" />
-             <span className="text-[10px] font-bold uppercase tracking-widest text-[#00f0ff]">Solana Devnet</span>
+          <p className="text-slate-400 mt-2 font-medium">Enterprise-grade security across multiple nodes</p>
+          <div className="inline-flex items-center gap-2 mt-6 px-4 py-1.5 rounded-full bg-black/40 border border-teal-400/30 backdrop-blur-md shadow-[0_0_20px_rgba(45,212,191,0.1)]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-teal-400">Solana Devnet</span>
           </div>
         </header>
 
@@ -225,17 +230,23 @@ export default function WalletPage() {
         {!notFound && !walletLoading && wallet && (
           <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
             <div className="flex flex-col">
-              <AccountInfo
-                publicKey={wallet.publicKey}
-                balance={wallet.balance}
-                network={wallet.network}
-                loading={false}
-                onRefresh={handleRefresh}
-              />
-              <SendForm onStatus={(kind, msg) => setStatus({ kind, msg })} />
+              <ScrollReveal>
+                <AccountInfo
+                  publicKey={wallet.publicKey}
+                  balance={wallet.balance}
+                  network={wallet.network}
+                  loading={false}
+                  onRefresh={handleRefresh}
+                />
+              </ScrollReveal>
+              <ScrollReveal>
+                <SendForm onStatus={(kind, msg) => setStatus({ kind, msg })} />
+              </ScrollReveal>
             </div>
             <div className="h-[600px] lg:h-auto">
-              <TransactionList transactions={transactions} loading={txLoading} />
+              <ScrollReveal className="h-full">
+                <TransactionList transactions={transactions} loading={txLoading} />
+              </ScrollReveal>
             </div>
           </div>
         )}
@@ -248,22 +259,22 @@ export default function WalletPage() {
 
 function loadingOrNotFound(loading: boolean, notFound: boolean, onRefresh: () => void) {
   if (loading) return (
-     <div className="flex flex-col items-center py-20 gap-4">
-        <div className="w-12 h-12 border-2 border-[#00f0ff] border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#00f0ff]">Syncing Nodes...</span>
-     </div>
+    <div className="flex flex-col items-center py-20 gap-4">
+      <div className="w-12 h-12 border-2 border-[#00f0ff] border-t-transparent rounded-full animate-spin" />
+      <span className="text-xs uppercase tracking-[0.2em] font-bold text-[#00f0ff]">Syncing Nodes...</span>
+    </div>
   );
 
   if (notFound) return (
-    <div className="card text-center py-16 flex flex-col items-center gap-6">
-       <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-          <span className="text-4xl text-white/50">🔒</span>
-       </div>
-       <div>
-         <h2 className="text-2xl font-bold mb-2">Vault Not Initialized</h2>
-         <p className="text-[#a0a0b0] max-w-sm mx-auto">Your MPC key shares haven't been generated yet. Contact an administrator to create your secure vault.</p>
-       </div>
-       <button className="btn btn-outline px-8" onClick={onRefresh}>Re-verify Identity</button>
+    <div className="card text-center py-16 flex flex-col items-center gap-6 max-w-lg mx-auto mt-12">
+      <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center border border-white/10 shadow-inner">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold mb-2 text-white">Vault Not Initialized</h2>
+        <p className="text-slate-400 max-w-sm mx-auto text-sm leading-relaxed">Your MPC key shares haven't been generated yet. Contact an administrator to create your secure vault.</p>
+      </div>
+      <button className="btn btn-outline px-8" onClick={onRefresh}>Re-verify Identity</button>
     </div>
   );
 

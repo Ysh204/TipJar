@@ -7,7 +7,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
     if (!token) {
         return res.status(403).json({
-            messsage: "Missing token"
+            message: "Missing token"
         })
     }
 
@@ -19,7 +19,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         next()
     } catch(e) {
         return res.status(403).json({
-            messsage: "Token malformed"
+            message: "Token malformed"
         })
     }
 
@@ -31,7 +31,7 @@ export const adminAuthMiddleware = (req: Request, res: Response, next: NextFunct
 
     if (!token) {
         return res.status(403).json({
-            messsage: "Missing token"
+            message: "Missing token"
         })
     }
 
@@ -43,7 +43,7 @@ export const adminAuthMiddleware = (req: Request, res: Response, next: NextFunct
         next()
     } catch(e) {
         return res.status(403).json({
-            messsage: "Token malformed"
+            message: "Token malformed"
         })
     }
 

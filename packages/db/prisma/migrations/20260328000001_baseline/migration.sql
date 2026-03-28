@@ -1,0 +1,3 @@
+-- Baseline migration: captures the existing schema as-is.
+-- The tables already exist in the DB; this file is intentionally empty
+-- so prisma migrate resolves the history without touching live data.

@@ -15,8 +15,11 @@ export default function SignInPage() {
     setLoading(true);
     setError("");
     try {
-      const token = await signin({ email, password });
+      const { token, user } = await signin({ email, password });
       localStorage.setItem("token", token);
+      localStorage.setItem("role", user.role);
+      localStorage.setItem("userId", user.id);
+      localStorage.setItem("email", email);
       window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err?.message || "Invalid credentials");
@@ -34,10 +37,8 @@ export default function SignInPage() {
       <div className="w-full max-w-md z-10">
         <div className="text-center mb-10">
            <Link href="/" className="inline-block mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00f0ff] to-[#7000ff] flex items-center justify-center p-[2px] shadow-[0_0_30px_rgba(0,240,255,0.2)]">
-                <div className="w-full h-full rounded-[14px] bg-[#0a0a0f] flex items-center justify-center">
-                  <span className="text-white font-black text-xl">TJ</span>
-                </div>
+              <div className="w-16 h-16 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] rounded-2xl">
+                <img src="/logo.png" alt="TipJar Logo" className="w-full h-full object-cover" />
               </div>
            </Link>
            <h1 className="text-3xl font-black text-white tracking-tighter mb-2">Welcome Back</h1>

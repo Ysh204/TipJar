@@ -1,0 +1,92 @@
+.animated-waves-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.animated-waves-container svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Wave drift animations ── */
+
+/* Cyan waves flow right & upward */
+.wave-group-1 {
+  animation: flow-right-up 10s ease-in-out infinite;
+}
+
+.wave-group-2 {
+  animation: flow-right-down 13s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+/* Purple waves flow left & downward */
+.wave-group-3 {
+  animation: flow-left-down 11s ease-in-out infinite;
+}
+
+.wave-group-4 {
+  animation: flow-left-up 15s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+/* Center crossing waves */
+.wave-group-5 {
+  animation: flow-right-up 12s ease-in-out infinite;
+  animation-delay: -8s;
+}
+
+.wave-group-6 {
+  animation: flow-left-down 12s ease-in-out infinite;
+  animation-delay: -5s;
+}
+
+/* ── Keyframes ── */
+
+@keyframes flow-right-up {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(100px, -30px); }
+  50%  { transform: translate(0, -50px); }
+  75%  { transform: translate(-80px, -25px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes flow-right-down {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(90px, 25px); }
+  50%  { transform: translate(120px, 45px); }
+  75%  { transform: translate(50px, 20px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes flow-left-down {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-90px, 30px); }
+  50%  { transform: translate(0, 50px); }
+  75%  { transform: translate(80px, 25px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes flow-left-up {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-100px, -25px); }
+  50%  { transform: translate(-120px, -45px); }
+  75%  { transform: translate(-50px, -20px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .wave-group-1,
+  .wave-group-2,
+  .wave-group-3,
+  .wave-group-4,
+  .wave-group-5,
+  .wave-group-6 {
+    animation: none;
+  }
+}

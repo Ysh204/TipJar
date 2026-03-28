@@ -54,11 +54,13 @@ export interface AggSignStepTwoData {
  */
 export interface TSSTransactionDetails {
   amount: number;
+  lamports?: number;
   to: PublicKey;
   from: PublicKey;
   network: SolanaNetwork;
   memo?: string;
   recentBlockhash: string;
+  recipients?: { to: PublicKey; amount: number; lamports?: number }[];
 }
 
 /**
