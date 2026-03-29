@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { signin } from "../../lib/api";
 import Link from "next/link";
+import { LockKeyhole } from "lucide-react";
+import { useState } from "react";
+
+import { signin } from "../../lib/api";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +16,7 @@ export default function SignInPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     try {
       const { token, user } = await signin({ email, password });
       localStorage.setItem("token", token);
@@ -29,63 +32,64 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030005] flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[#7000ff]/10 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#00f0ff]/10 blur-[150px] pointer-events-none" />
-
-      <div className="w-full max-w-md z-10">
-        <div className="text-center mb-10">
-           <Link href="/" className="inline-block mb-8">
-              <div className="w-16 h-16 flex items-center justify-center overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.1)] rounded-2xl">
-                <img src="/logo.png" alt="TipJar Logo" className="w-full h-full object-cover" />
-              </div>
-           </Link>
-           <h1 className="text-3xl font-black text-white tracking-tighter mb-2">Welcome Back</h1>
-           <p className="text-[#a0a0b0] font-medium">Securely sign in to your creator portal</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+      <section className="dashboard-panel mx-auto w-full max-w-xl">
+        <div className="mb-8 text-center">
+          <Link
+            href="/"
+            className="inline-flex h-16 w-16 items-center justify-center rounded-[1.4rem] bg-[#0d1017] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+          >
+            <img src="/logo.png" alt="TipJar Logo" className="h-10 w-10 object-contain" />
+          </Link>
+          <h1 className="mt-6 text-3xl font-black tracking-tight text-white">Sign in</h1>
+          <p className="mt-2 text-[#9aa3b2]">Access your TipJar dashboard.</p>
         </div>
 
-        <div className="card">
-          <form onSubmit={handleSignIn} className="flex flex-col gap-6">
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-[#a0a0b0] font-bold block mb-2">Email Address</label>
-              <input
-                className="input"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+        <form onSubmit={handleSignIn} className="flex flex-col gap-5">
+          <div>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-[#7d8796]">
+              Email address
+            </label>
+            <input
+              className="dashboard-input"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-[#7d8796]">
+              Password
+            </label>
+            <input
+              className="dashboard-input"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error ? (
+            <div className="rounded-[1rem] border border-red-400/18 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-400">
+              {error}
             </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-widest text-[#a0a0b0] font-bold block mb-2">Password</label>
-              <input
-                className="input"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          ) : null}
 
-            {error && (
-              <div className="py-3 px-4 rounded-xl bg-red-400/5 border border-red-400/20 text-red-400 text-xs font-bold animate-pulse">
-                {error}
-              </div>
-            )}
+          <button disabled={loading} className="btn btn-primary mt-2 w-full" type="submit">
+            <LockKeyhole size={16} />
+            {loading ? "Authenticating..." : "Sign in"}
+          </button>
+        </form>
 
-            <button disabled={loading} className="btn btn-primary w-full py-3.5 mt-2" type="submit">
-              {loading ? "Authenticating..." : "Sign In to TipJar"}
-            </button>
-          </form>
-        </div>
-
-        <p className="text-center mt-8 text-sm text-[#606070] font-bold uppercase tracking-widest">
-           Protected by Multi-Party Computation
+        <p className="mt-6 text-center text-[11px] font-bold uppercase tracking-[0.24em] text-[#66707f]">
+          Protected by multi-party computation
         </p>
-      </div>
+      </section>
     </div>
   );
 }

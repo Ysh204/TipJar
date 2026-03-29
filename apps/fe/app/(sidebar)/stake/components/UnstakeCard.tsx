@@ -1,46 +1,47 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useStaking } from '../../../../hooks/staking/useStaking';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useEffect, useState } from "react";
+import { Clock3, Unlock } from "lucide-react";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+import { useStaking } from "../../../../hooks/staking/useStaking";
 
 export function UnstakeCard() {
-  const [amount, setAmount] = useState('');
-  const [timeLeft, setTimeLeft] = useState('');
+  const [amount, setAmount] = useState("");
+  const [timeLeft, setTimeLeft] = useState("");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const { requestUnstake, withdrawUnstake, loading, userStake } = useStaking();
   const { connected } = useWallet();
 
   const stakedBalance = userStake ? (userStake.stakedAmount.toNumber() / 1e9).toFixed(2) : "0.00";
   const pendingUnstake = userStake ? (userStake.pendingUnstakeAmount.toNumber() / 1e9).toFixed(2) : "0.00";
-  const hasPending = userStake && userStake.pendingUnstakeAmount.toNumber() > 0;
+  const hasPending = !!userStake && userStake.pendingUnstakeAmount.toNumber() > 0;
 
   useEffect(() => {
     if (!userStake || userStake.pendingUnstakeAmount.toNumber() === 0) {
-      setTimeLeft('');
+      setTimeLeft("");
       setIsUnlocked(false);
       return;
     }
 
     const updateTimer = () => {
-      const unlockTimeStr = userStake.unstakeUnlockTime.toString();
-      const unlockTime = parseInt(unlockTimeStr) * 1000;
+      const unlockTime = parseInt(userStake.unstakeUnlockTime.toString(), 10) * 1000;
       const now = Date.now();
-      
+
       if (now >= unlockTime) {
-        setTimeLeft('Unlocked & Ready!');
+        setTimeLeft("Unlocked and ready");
         setIsUnlocked(true);
       } else {
         setIsUnlocked(false);
         const diff = unlockTime - now;
         const hours = Math.floor(diff / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        setTimeLeft(`Unlocking in: ${hours}h ${minutes}m`);
+        setTimeLeft(`Unlocking in ${hours}h ${minutes}m`);
       }
     };
 
     updateTimer();
-    const interval = setInterval(updateTimer, 60000); // Check every minute
+    const interval = setInterval(updateTimer, 60000);
     return () => clearInterval(interval);
   }, [userStake]);
 
@@ -49,57 +50,85 @@ export function UnstakeCard() {
       await withdrawUnstake();
     } else if (!hasPending && amount && !isNaN(Number(amount))) {
       await requestUnstake(Number(amount));
-      setAmount('');
+      setAmount("");
     }
   };
 
   return (
-    <div className="flex flex-col relative text-left bg-black/20 border border-white/5 rounded-2xl p-6 md:p-8 hover:bg-black/30 transition-colors duration-300 h-full justify-between">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-1">Unstake SOL</h2>
-        <p className="text-text-secondary text-sm">Staked Balance: <span className="text-white font-mono">{stakedBalance} SOL</span></p>
-      </div>
-
-      <div className="relative mb-8 flex-grow">
-        {!hasPending ? (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-xl blur-xl opacity-0 hover:opacity-100 transition-opacity"></div>
-            <input 
-              type="number" 
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="w-full bg-[#12121a]/80 border border-white/10 rounded-xl py-4 pl-6 pr-16 text-2xl text-white font-mono outline-none focus:border-pink-500/50 focus:shadow-[0_0_15px_rgba(236,72,153,0.2)] transition-all relative z-10"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-20">
-               <span className="text-text-secondary font-bold text-sm">SOL</span>
-            </div>
-            <p className="text-text-secondary text-xs mt-3 flex items-center gap-1.5 opacity-75">
-               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-               24-hour lockup applies
+    <div className="flex h-full flex-col justify-between rounded-[1.8rem] border border-white/[0.03] bg-[linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.003)),rgba(16,16,26,0.18)] p-8 backdrop-blur-[26px] shadow-[inset_0_1px_0_rgba(255,255,255,0.012)]">
+      <div>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/8 bg-white/[0.03] text-white/75">
+            {hasPending ? <Unlock size={18} /> : <Clock3 size={18} />}
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+              Exit module
             </p>
-          </>
+            <h2 className="text-xl font-extrabold text-white">Unstake SOL</h2>
+          </div>
+        </div>
+
+        <div className="rounded-[1.35rem] bg-white/[0.025] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#71868d]">
+            Staked balance
+          </p>
+          <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+            {stakedBalance} <span className="text-sm text-[#7f959d]">SOL</span>
+          </p>
+        </div>
+
+        {!hasPending ? (
+          <div className="mt-5">
+            <label className="mb-2 block text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+              Amount to unstake
+            </label>
+            <div className="rounded-[1.25rem] border border-white/8 bg-[#071116]/55 p-1 backdrop-blur-xl">
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="dashboard-input border-0 bg-transparent text-3xl"
+              />
+            </div>
+            <p className="mt-3 text-sm text-[#8399a1]">A 24-hour unlock period applies after request.</p>
+          </div>
         ) : (
-          <div className="flex flex-col justify-center items-center h-full py-2">
-            <p className="text-text-secondary text-xs uppercase tracking-widest mb-2">Pending Unstake</p>
-            <p className="text-4xl font-mono font-bold text-white mb-2">{pendingUnstake} <span className="text-lg">SOL</span></p>
-            <p className={`text-sm font-medium px-3 py-1 rounded-full ${isUnlocked ? 'text-green-400 bg-green-400/10' : 'text-pink-400 bg-pink-400/10'}`}>
+          <div className="mt-5 rounded-[1.35rem] border border-white/[0.04] bg-white/[0.022] p-5 backdrop-blur-xl">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#71868d]">
+              Pending unstake
+            </p>
+            <p className="mt-3 text-3xl font-extrabold tracking-tight text-white">
+              {pendingUnstake} <span className="text-sm text-[#7f959d]">SOL</span>
+            </p>
+            <p
+              className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-bold ${
+                isUnlocked ? "bg-emerald-400/10 text-emerald-400" : "bg-white/6 text-[#d4e0e4]"
+              }`}
+            >
               {timeLeft}
             </p>
           </div>
         )}
       </div>
 
-      <button 
+      <button
         onClick={handleAction}
         disabled={!connected || loading || (!hasPending && !amount)}
-        className={`w-full py-4 rounded-xl font-bold tracking-widest uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1 ${
-          hasPending && isUnlocked 
-            ? 'bg-gradient-to-r from-green-500 to-emerald-400 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]'
-            : 'bg-gradient-to-r from-[#8a426f] to-[#5c2b53] text-white/90 shadow-[0_0_15px_rgba(138,66,111,0.2)] hover:shadow-[0_0_25px_rgba(138,66,111,0.4)] hover:text-white'
+        className={`btn mt-8 w-full ${
+          hasPending && isUnlocked
+            ? "bg-gradient-to-r from-emerald-400 to-[#b4ff4d] text-[#041014]"
+            : "border border-white/8 bg-white/[0.04] text-white"
         }`}
       >
-        {loading ? 'Processing...' : hasPending && isUnlocked ? 'Withdraw SOL' : hasPending ? 'Locked' : 'Request Unstake'}
+        {loading
+          ? "Processing..."
+          : hasPending && isUnlocked
+            ? "Withdraw SOL"
+            : hasPending
+              ? "Await unlock"
+              : "Request unstake"}
       </button>
     </div>
   );

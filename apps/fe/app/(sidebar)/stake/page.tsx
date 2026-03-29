@@ -1,68 +1,73 @@
 "use client";
 
-import { useMemo } from 'react';
-import { Toaster } from 'react-hot-toast';
-import SolanaWalletProvider from '../../../components/SolanaWalletProvider';
-import { Navbar } from './components/Navbar';
-import { StatsBar } from './components/StatsBar';
-import { StakeCard } from './components/StakeCard';
-import { UnstakeCard } from './components/UnstakeCard';
-import { RewardsCard } from './components/RewardsCard';
-import RequireAuth from '../../../components/RequireAuth';
+import { Toaster } from "react-hot-toast";
+import { Sparkles } from "lucide-react";
+
+import RequireAuth from "../../../components/RequireAuth";
+import SolanaWalletProvider from "../../../components/SolanaWalletProvider";
+import { AnimatedWaves } from "../../../components/layout/AnimatedWaves";
+import { Navbar } from "./components/Navbar";
+import { RewardsCard } from "./components/RewardsCard";
+import { StakeCard } from "./components/StakeCard";
+import { StatsBar } from "./components/StatsBar";
+import { UnstakeCard } from "./components/UnstakeCard";
 
 export default function StakePage() {
   return (
     <RequireAuth>
       <SolanaWalletProvider>
-        <div className="min-h-screen flex flex-col w-full relative selection:bg-electric-purple/30 overflow-hidden rounded-[var(--radius)]">
-          <Toaster 
-            position="bottom-right" 
-            toastOptions={{ 
-              style: { 
-                backgroundColor: '#12121a', 
-                color: '#fff', 
-                border: '1px solid rgba(255, 255, 255, 0.1)', 
-                backdropFilter: 'blur(10px)' 
-              } 
-            }} 
+        <div className="relative flex min-h-screen w-full flex-col overflow-hidden rounded-[var(--radius)] selection:bg-electric-purple/30">
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                backgroundColor: "#091318",
+                color: "#fff",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
+                backdropFilter: "blur(18px)",
+              },
+            }}
           />
-          
 
-
-          <div className="w-full relative z-10 flex flex-col min-h-screen">
+          <div className="relative z-10 flex min-h-screen w-full flex-col">
             <Navbar />
-            
-            <main className="flex-1 w-full px-4 md:px-8 pb-24 mt-4 flex flex-col items-center">
-              
-              <div className="text-center mb-10 mt-4 animate-float-staking">
-                <h1 className="text-5xl md:text-7xl font-black mb-4 tracking-tight text-white drop-shadow-lg">
-                  Stake your <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-purple to-cyan-accent text-glow-staking">SOL</span>
-                </h1>
-                <p className="text-text-secondary text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                  Participate in the network and earn passive yield with no hidden fees and a secure<br/ >24-hour unstaking process.
-                </p>
-              </div>
 
-              <div className="relative max-w-6xl mx-auto w-full">
+            <main className="mt-6 flex flex-1 flex-col px-0 pb-10">
+              <header className="mb-6">
+                <div className="dashboard-chip dashboard-chip-strong mb-4">
+                  <Sparkles size={14} />
+                  Staking terminal
+                </div>
+                <div className="animate-float-staking">
+                  <h1 className="text-5xl font-black tracking-tight text-white md:text-7xl">
+                    Stake your{" "}
+                    <span className="bg-gradient-to-r from-electric-purple to-cyan-accent bg-clip-text text-transparent text-glow-staking">
+                      SOL
+                    </span>
+                  </h1>
+                  <p className="mt-4 max-w-3xl text-sm leading-7 text-[#8aa0a8] md:text-base">
+                    Stake your SOL and earn rewards with our secure and user-friendly staking terminal, designed to maximize your returns while keeping your assets safe.
+                  </p>
+                </div>
+              </header>
 
+              <section className="glass-card-staking relative isolate overflow-hidden rounded-[2rem] p-4 md:p-6">
+                <div className="absolute inset-0 opacity-[0.2] pointer-events-none">
+                  <AnimatedWaves />
+                </div>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(139,92,246,0.06),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(98,214,255,0.04),transparent_35%)] pointer-events-none" />
+                <div className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] [background-size:30px_30px] pointer-events-none" />
 
-                {/* Main Central Glass Panel */}
-                <div className="glass-card-staking rounded-3xl p-6 md:p-10 relative overflow-hidden bg-white/[0.02]">
-                  {/* Subtle grid pattern inside panel */}
-                  <div className="absolute inset-0 opacity-[0.15] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PHBhdGggZD0iTTE1IDB2MzB0MTUgMTVIMUMiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIGZpbGw9Im5vbmUiLz48L3N2Zz4=')]"></div>
-                  
-                  <div className="relative z-10">
-                    <StatsBar />
+                <div className="relative z-10">
+                  <StatsBar />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10">
-                      <StakeCard />
-                      <UnstakeCard />
-                      <RewardsCard />
-                    </div>
+                  <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
+                    <StakeCard />
+                    <UnstakeCard />
+                    <RewardsCard />
                   </div>
                 </div>
-              </div>
-
+              </section>
             </main>
           </div>
         </div>

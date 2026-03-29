@@ -1,32 +1,36 @@
 "use client";
 
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Shield } from "lucide-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export function Navbar() {
   return (
-    <nav className="w-full flex justify-center py-6 px-4 z-50">
-      <div className="w-full max-w-6xl glass-module rounded-full px-6 py-3 flex justify-between items-center bg-black/40 border border-white/5 backdrop-blur-md">
-        <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="relative w-12 h-12 flex-shrink-0 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/30 to-cyan-500/30 blur-xl rounded-full opacity-50 group-hover:opacity-80 transition-opacity" />
-
-            <img
-              src="/logo2.png"
-              alt="SOLStake Logo"
-              className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_12px_rgba(170,59,255,0.6)]"
-            />
+    <nav className="w-full px-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0f1822] shadow-[0_0_30px_rgba(139,92,246,0.12)]">
+            <img src="/logo2.png" alt="SOLStake Logo" className="h-8 w-8 object-contain" />
           </div>
 
-          <span className="text-2xl font-black tracking-tighter text-white bg-clip-text">
-            SOL<span className="text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text">Stake</span>
-          </span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#6d848b]">
+              Staking Desk
+            </p>
+            <span className="text-2xl font-black tracking-tight text-white">
+              SOL
+              <span className="bg-gradient-to-r from-violet-400 to-sky-300 bg-clip-text text-transparent">
+                Stake
+              </span>
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold tracking-widest uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f0ff] animate-pulse"></span>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div className="flex items-center gap-2 rounded-full bg-[#151729] px-4 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-[#b58cff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">
+            <Shield size={14} />
             Devnet
           </div>
+
           <div className="wallet-button-container">
             <WalletMultiButton />
           </div>

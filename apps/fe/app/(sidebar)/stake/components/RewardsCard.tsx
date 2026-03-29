@@ -1,14 +1,15 @@
 "use client";
 
-import { useStaking } from '../../../../hooks/staking/useStaking';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from "react";
+import { Gift, TrendingUp } from "lucide-react";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+import { useStaking } from "../../../../hooks/staking/useStaking";
 
 export function RewardsCard() {
   const { userStake, claimRewards, loading, poolState, walletBalance } = useStaking();
   const { connected } = useWallet();
   const [liveReward, setLiveReward] = useState<number>(0);
-  const startTimeRef = useRef<number>(Date.now());
 
   const stakedLamports = userStake ? userStake.stakedAmount.toNumber() : 0;
   const rate = poolState ? poolState.rewardRate.toNumber() : 0;
@@ -22,47 +23,64 @@ export function RewardsCard() {
 
     const baseRewardLamports = userStake.pendingReward.toNumber();
     const lastUpdateSec = userStake.lastUpdateTime.toNumber();
-    startTimeRef.current = Date.now();
 
     const interval = setInterval(() => {
       const elapsedSinceUpdate = Date.now() / 1000 - lastUpdateSec;
-      const projectedReward = baseRewardLamports + (stakedLamports * rate * Math.max(0, elapsedSinceUpdate)) / 1e9;
+      const projectedReward =
+        baseRewardLamports + (stakedLamports * rate * Math.max(0, elapsedSinceUpdate)) / 1e9;
       setLiveReward(projectedReward / 1e9);
-    }, 50);
+    }, 100);
 
     return () => clearInterval(interval);
-  }, [userStake, poolState, stakedLamports, rate]);
+  }, [userStake, stakedLamports, rate]);
 
   return (
-    <div className="flex flex-col relative text-left bg-black/20 border border-white/5 rounded-2xl p-6 md:p-8 hover:bg-black/30 transition-colors duration-300 h-full justify-between">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-white mb-1">Your Rewards</h2>
-        <p className="text-text-secondary text-sm">Tokens earned from your active stake</p>
-      </div>
-
-      <div className="flex-grow flex flex-col justify-center items-center py-4">
-        <p className="text-text-secondary text-xs uppercase tracking-widest mb-3 opacity-70">PENDING CLAIM</p>
-        <p className="text-[2.2rem] font-mono font-black text-cyan-accent text-glow mb-1 leading-none tracking-tighter">
-          {liveReward.toFixed(8)}
-        </p>
-        <p className="text-cyan-accent/60 text-xs mt-2 font-mono font-medium">
-          {rewardPerSec > 0 ? `+${(rewardPerSec / 1e9).toExponential(2)} RTK/sec` : ''}
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-3 mt-4">
-        <div className="w-full flex justify-between items-end px-1 pb-1">
-          <span className="text-text-secondary/70 tracking-widest uppercase text-[10px] font-bold shadow-sm">In Wallet</span>
-          <span className="text-white font-mono font-bold text-sm tracking-wide">{(walletBalance || 0).toFixed(2)} <span className="text-text-secondary text-xs">RTK</span></span>
+    <div className="flex h-full flex-col justify-between rounded-[1.8rem] border border-white/[0.03] bg-[linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.003)),rgba(16,16,26,0.18)] p-8 backdrop-blur-[26px] shadow-[inset_0_1px_0_rgba(255,255,255,0.012)]">
+      <div>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#49f0dd]/14 bg-[#49f0dd]/10 text-[#49f0dd]">
+            <Gift size={18} />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+              Rewards module
+            </p>
+            <h2 className="text-xl font-extrabold text-white">Your rewards</h2>
+          </div>
         </div>
-        <button 
-          onClick={claimRewards}
-          disabled={!connected || loading || liveReward === 0}
-          className="w-full py-4 rounded-xl bg-cyan-accent/10 border border-cyan-accent/30 hover:bg-cyan-accent/20 text-cyan-accent font-bold tracking-widest uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-1 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_25px_rgba(0,240,255,0.3)]"
-        >
-          {loading ? 'Processing...' : 'Claim Rewards'}
-        </button>
+
+        <div className="rounded-[1.4rem] border border-white/[0.08] bg-[radial-gradient(circle_at_top,rgba(98,214,255,0.08),transparent_55%),rgba(7,17,22,0.38)] p-5 text-center backdrop-blur-xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+            Pending claim
+          </p>
+          <p className="mt-4 text-[2.6rem] font-black tracking-tight text-[#49f0dd] text-glow-staking">
+            {liveReward.toFixed(8)}
+          </p>
+          <p className="mt-2 text-xs font-mono text-[#7feee0]">
+            {rewardPerSec > 0 ? `+${(rewardPerSec / 1e9).toExponential(2)} RTK/sec` : "No active emissions"}
+          </p>
+        </div>
+
+        <div className="mt-5 rounded-[1.3rem] bg-white/[0.025] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)]">
+          <div className="mb-2 flex items-center gap-3">
+            <TrendingUp size={16} className="text-white/70" />
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+              In wallet
+            </p>
+          </div>
+          <p className="text-xl font-extrabold text-white">
+            {(walletBalance || 0).toFixed(2)} <span className="text-sm text-[#7f959d]">RTK</span>
+          </p>
+        </div>
       </div>
+
+      <button
+        onClick={claimRewards}
+        disabled={!connected || loading || liveReward === 0}
+        className="btn btn-outline mt-8 w-full border-[#49f0dd]/20 text-[#49f0dd] hover:bg-[#49f0dd]/10"
+      >
+        {loading ? "Processing..." : "Claim rewards"}
+      </button>
     </div>
   );
 }

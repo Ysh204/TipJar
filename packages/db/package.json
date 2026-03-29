@@ -5,6 +5,9 @@
   "exports": {
     "./client": "./index.ts"
   },
+  "scripts": {
+    "create-admin": "bun run ./scripts/create-admin.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "prisma": "6.13.0"

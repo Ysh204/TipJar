@@ -1,15 +1,58 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import RequireAuth from "../../../components/RequireAuth";
-import { useCreators, useCreator } from "../../../hooks/creators";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Activity,
+  ArrowUpRight,
+  Copy,
+  LineChart,
+  Users,
+} from "lucide-react";
+
+import RequireAuth from "../../../components/RequireAuth";
 import ScrollReveal from "../../../components/ScrollReveal";
+import { useCreator, useCreators } from "../../../hooks/creators";
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
-    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  accent,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  accent: "teal" | "lime";
+}) {
+  const accentClasses =
+    accent === "teal"
+      ? "bg-[#8b5cf6]/[0.08] text-[#b58cff] shadow-[inset_0_0_0_1px_rgba(139,92,246,0.14)]"
+      : "bg-[#62d6ff]/[0.08] text-[#62d6ff] shadow-[inset_0_0_0_1px_rgba(98,214,255,0.14)]";
+
+  return (
+    <div className="dashboard-soft-panel rounded-[1.4rem] p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-[0.26em] text-[#70868d]">
+          {label}
+        </span>
+        <div className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${accentClasses}`}>
+          Live
+        </div>
+      </div>
+      <div className="text-3xl font-extrabold tracking-tight text-white">{value}</div>
+      <p className="mt-2 text-sm text-[#7f969d]">{detail}</p>
+    </div>
+  );
 }
 
 function CreatorCard({ creator }: { creator: any }) {
@@ -18,41 +61,55 @@ function CreatorCard({ creator }: { creator: any }) {
   return (
     <ScrollReveal>
       <Link href={`/creator/${creator.id}`} className="creator-card group block h-full">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div className="creator-card-avatar">
             {creator.avatarUrl ? (
-              <img src={creator.avatarUrl} alt={creator.displayName} className="w-full h-full object-cover" />
+              <img
+                src={creator.avatarUrl}
+                alt={creator.displayName}
+                className="h-full w-full object-cover"
+              />
             ) : (
-              <span className="text-lg font-bold text-white">{initials}</span>
+              <span className="text-lg font-extrabold text-white">{initials}</span>
             )}
           </div>
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] uppercase tracking-widest text-teal-400 font-bold">Creator</span>
-            <span className="text-xs text-slate-400 opacity-70">#{creator.id.slice(0, 4)}</span>
+          <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#8f88a6]">
+            Creator
           </div>
         </div>
 
-      <div className="mt-2">
-        <h3 className="text-lg font-bold text-white group-hover:text-teal-400 transition-colors">
-          {creator.displayName || "Unnamed"}
-        </h3>
-        <p className="text-sm text-slate-400 line-clamp-2 mt-1 min-h-[40px]">
-          {creator.bio || "No bio description available for this creator."}
-        </p>
-      </div>
+        <div>
+          <h3 className="text-xl font-extrabold text-white transition-colors group-hover:text-[#b58cff]">
+            {creator.displayName || "Unnamed Creator"}
+          </h3>
+          <p className="mt-2 min-h-[48px] text-sm leading-6 text-[#96a0b1] line-clamp-2">
+            {creator.bio || "Support this creator with fast devnet SOL tips and track their on-chain activity."}
+          </p>
+        </div>
 
-      <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5 mt-2">
-        <div className="flex flex-col bg-black/30 shadow-inner rounded-xl p-3 border border-white/5">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Earnings</span>
-          <span className="text-sm font-bold text-white">{creator.totalTips.toFixed(2)} SOL</span>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-[1rem] bg-white/[0.015] p-3.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#727c8f]">
+              Earned
+            </p>
+            <p className="mt-2 text-base font-extrabold text-white">
+              ◎ {creator.totalTips.toFixed(2)}
+            </p>
+          </div>
+          <div className="rounded-[1rem] bg-white/[0.015] p-3.5 text-right shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#727c8f]">
+              Supporters
+            </p>
+            <p className="mt-2 text-base font-extrabold text-white">
+              {creator.tipCount || 0}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col items-end bg-black/30 shadow-inner rounded-xl p-3 border border-white/5">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Tips</span>
-          <span className="text-sm font-bold text-white">{creator.tipCount || 0}</span>
+
+        <div className="mt-auto flex items-center justify-between border-t border-white/[0.04] pt-4">
+          <span className="text-xs font-semibold text-[#99a4b5]">Open profile</span>
+          <ArrowUpRight size={16} className="text-[#b58cff]" />
         </div>
-      </div>
-      
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </Link>
     </ScrollReveal>
   );
@@ -61,35 +118,93 @@ function CreatorCard({ creator }: { creator: any }) {
 function DiscoverFeed() {
   const { creators, loading } = useCreators();
 
+  const metrics = useMemo(() => {
+    const totalVolume = creators.reduce((sum, creator) => sum + creator.totalTips, 0);
+    const totalTips = creators.reduce((sum, creator) => sum + (creator.tipCount || 0), 0);
+    const topCreator = creators.reduce(
+      (best, creator) => (creator.totalTips > (best?.totalTips ?? -1) ? creator : best),
+      creators[0],
+    );
+
+    return {
+      totalVolume,
+      totalTips,
+      totalCreators: creators.length,
+      topCreator,
+    };
+  }, [creators]);
+
   return (
-    <div id="feed-page" className="max-w-[1600px] mx-auto w-full">
-      <header className="mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl landing-gradient">
-          Discover Creators
-        </h1>
-        <p className="text-slate-400 mt-2 font-medium text-lg">Support the community with instant devnet SOL tips</p>
+    <div className="mx-auto w-full max-w-[1500px]" id="feed-page">
+      <header className="mb-10">
+        <div className="animate-float-staking">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+            Discover <span className="landing-gradient">Creators</span>
+          </h1>
+          <p className="mt-3 max-w-2xl text-base text-[#97a1b1]">
+            Browse creator profiles, compare support totals, and open any profile to send a tip.
+          </p>
+        </div>
       </header>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-          {[...Array(10)].map((_, i) => (
-            <div key={i} className="creator-card opacity-50">
-               <div className="wallet-skeleton w-12 h-12 rounded-full mb-4" />
-               <div className="wallet-skeleton h-6 w-3/4 mb-2" />
-               <div className="wallet-skeleton h-4 w-full mb-4" />
-            </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="wallet-skeleton h-[220px] w-full rounded-[2rem]" />
           ))}
         </div>
       ) : creators.length === 0 ? (
-        <div className="card text-center py-20 flex flex-col items-center gap-4">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 mb-2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          <h3 className="text-xl font-bold text-white">No creators found</h3>
-          <p className="text-slate-400">The platform is currently waiting for the first wave of creators.</p>
+        <div className="card flex flex-col items-center gap-4 py-20 text-center">
+          <Activity size={42} className="text-white/35" />
+          <h3 className="text-2xl font-extrabold text-white">No creators found</h3>
+          <p className="max-w-md text-sm text-[#8aa0a8]">
+            The dashboard is ready, but the first creator profiles have not been added yet.
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-          {creators.map((c) => <CreatorCard key={c.id} creator={c} />)}
-        </div>
+        <>
+          <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <MetricCard
+              label="Creators"
+              value={String(metrics.totalCreators).padStart(2, "0")}
+              detail="Profiles available to browse."
+              accent="teal"
+            />
+            <MetricCard
+              label="Total tipped"
+              value={`◎ ${metrics.totalVolume.toFixed(2)}`}
+              detail="Visible support volume across profiles."
+              accent="lime"
+            />
+            <MetricCard
+              label="Support actions"
+              value={metrics.totalTips.toString()}
+              detail="Tip events recorded so far."
+              accent="teal"
+            />
+          </section>
+
+          <section>
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-[#768092]">
+                  Creator list
+                </p>
+                <h2 className="mt-2 text-2xl font-extrabold text-white">Available creators</h2>
+              </div>
+              <div className="dashboard-chip">
+                <Users size={14} />
+                {metrics.topCreator?.displayName || "Top creator available"}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {creators.map((creator) => (
+                <CreatorCard key={creator.id} creator={creator} />
+              ))}
+            </div>
+          </section>
+        </>
       )}
     </div>
   );
@@ -99,22 +214,31 @@ function CreatorAnalytics({ userId }: { userId: string }) {
   const { creator, loading, error } = useCreator(userId);
   const [copied, setCopied] = useState(false);
 
-  if (loading) return (
-     <div className="flex flex-col items-center py-24 gap-4">
-        <div className="w-12 h-12 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs uppercase tracking-[0.2em] font-bold text-teal-400">Loading Stats...</span>
-     </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-24">
+        <div className="h-12 w-12 animate-spin rounded-full border-2 border-[#8b5cf6] border-t-transparent" />
+        <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#b58cff]">
+          Loading creator analytics
+        </span>
+      </div>
+    );
+  }
 
-  if (error || !creator) return (
-    <div className="card text-center py-20 flex flex-col items-center gap-4">
-       <span className="text-4xl opacity-50">😕</span>
-       <h3 className="text-xl font-bold">Stats Not Found</h3>
-       <p className="text-slate-400">Could not retrieve your creator profile.</p>
-    </div>
-  );
+  if (error || !creator) {
+    return (
+      <div className="card flex flex-col items-center gap-4 py-20 text-center">
+        <Activity size={42} className="text-white/35" />
+        <h3 className="text-2xl font-extrabold text-white">Stats not found</h3>
+        <p className="max-w-md text-sm text-[#8aa0a8]">
+          Your creator analytics could not be loaded right now.
+        </p>
+      </div>
+    );
+  }
 
   const profileUrl = `${window.location.origin}/creator/${userId}`;
+  const latestTip = creator.tipsReceived[0];
 
   function handleCopy() {
     navigator.clipboard.writeText(profileUrl);
@@ -123,96 +247,166 @@ function CreatorAnalytics({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="max-w-5xl mx-auto w-full" id="creator-analytics">
-      <header className="mb-12">
-        <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl landing-gradient">
-          My Stats
-        </h1>
-        <p className="text-slate-400 mt-2 font-medium text-lg">Track your earnings and supporters</p>
+    <div className="mx-auto w-full max-w-[1500px]" id="creator-analytics">
+      <header className="mb-10 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="animate-float-staking">
+          <div className="dashboard-chip dashboard-chip-strong mb-4">
+            Creator Command View
+          </div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+            Your creator <span className="landing-gradient">performance board</span>
+          </h1>
+          <p className="mt-3 max-w-2xl text-base text-[#8ba2aa]">
+            Monitor earnings, supporter activity, and your public profile from a more polished dashboard layout.
+          </p>
+        </div>
+
+        <div className="dashboard-chip">
+          <Users size={14} />
+          {creator.tipCount} supporters tracked
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_0.8fr] gap-6 mb-8">
-         <ScrollReveal>
-           <div className="card h-full flex flex-col justify-center border-t-2 border-t-teal-400/50">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Total SOL Earned</span>
-              <h2 className="text-5xl font-black text-white">◎ {creator.totalTips.toFixed(4)}</h2>
-           </div>
-         </ScrollReveal>
-         
-         <ScrollReveal>
-           <div className="card h-full flex flex-col justify-center border-t-2 border-t-indigo-400/50">
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Total Supporters</span>
-              <h2 className="text-5xl font-black text-white">{creator.tipCount} Tips</h2>
-           </div>
-         </ScrollReveal>
-      </div>
+      <section className="grid grid-cols-1 gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="dashboard-panel dashboard-grid-bg min-h-[280px]">
+          <div className="relative z-10 flex h-full flex-col justify-between gap-8">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#71868d]">
+                Total volume earned
+              </p>
+              <h2 className="mt-4 text-5xl font-extrabold tracking-tight text-white sm:text-6xl">
+                ◎ {creator.totalTips.toFixed(4)}
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[#8399a1]">
+                A cleaner creator analytics hero with the same data, but aligned with the dark dashboard from the image reference.
+              </p>
+            </div>
 
-      <ScrollReveal>
-         <div className="card mb-8">
-           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-bold text-white">Share Your Profile</h3>
-                <p className="text-sm text-slate-400">Drop this link to allow fans to send you tips instantly.</p>
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                 <div className="px-4 py-3 rounded-xl bg-black/40 border border-white/10 text-sm font-mono text-teal-400 overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px] sm:max-w-[300px]">
-                    {profileUrl}
-                 </div>
-                 <button onClick={handleCopy} className="btn flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white rounded-xl px-4 py-3 font-bold transition-colors">
-                    {copied ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400"><polyline points="20 6 9 17 4 12"/></svg>
-                    ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                    )}
-                 </button>
-              </div>
-           </div>
-         </div>
-      </ScrollReveal>
-
-      <ScrollReveal>
-        <div className="card">
-           <div className="flex items-center gap-3 mb-6">
-              <svg className="text-indigo-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <h2 className="text-lg font-bold uppercase tracking-widest">Recent Supporters</h2>
-           </div>
-           {creator.tipsReceived.length === 0 ? (
-             <div className="text-center py-10 opacity-30">
-                <p className="text-sm">No tips received yet.</p>
-             </div>
-           ) : (
-             <div className="flex flex-col gap-4">
-               {creator.tipsReceived.map((tip) => (
-                 <div key={tip.id} className="tip-row flex-col items-stretch gap-3">
-                   <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 overflow-hidden shadow-inner">
-                            {tip.fromUser.avatarUrl ? (
-                              <img src={tip.fromUser.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="text-sm font-black text-white">{(tip.fromUser.displayName || 'A').slice(0, 1).toUpperCase()}</span>
-                            )}
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-white">{tip.fromUser.displayName || "Anonymous contributor"}</span>
-                            <span className="text-[10px] text-slate-500">{fmtTime(tip.createdAt)}</span>
-                         </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                         <span className="text-sm font-black text-emerald-400">+◎ {tip.amount.toFixed(4)}</span>
-                      </div>
-                   </div>
-                   {tip.message && (
-                     <div className="bg-black/20 p-3 rounded-lg border border-white/5">
-                        <p className="text-xs text-[#d1d5db] italic line-clamp-3">"{tip.message}"</p>
-                     </div>
-                   )}
-                 </div>
-               ))}
-             </div>
-           )}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <MetricCard
+                label="Total supporters"
+                value={String(creator.tipCount)}
+                detail="Distinct support events recorded."
+                accent="teal"
+              />
+              <MetricCard
+                label="Latest support"
+                value={latestTip ? `◎ ${latestTip.amount.toFixed(2)}` : "◎ 0.00"}
+                detail={latestTip ? fmtTime(latestTip.createdAt) : "No incoming tips yet."}
+                accent="lime"
+              />
+              <MetricCard
+                label="Creator ID"
+                value={`#${creator.id.slice(0, 4)}`}
+                detail="Your public profile identifier."
+                accent="teal"
+              />
+            </div>
+          </div>
         </div>
-      </ScrollReveal>
+
+        <div className="dashboard-panel">
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#8b5cf6]/14 bg-[#8b5cf6]/10 text-[#b58cff]">
+              <Copy size={18} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+                Share your profile
+              </p>
+              <h2 className="text-xl font-extrabold text-white">Public tip link</h2>
+            </div>
+          </div>
+
+          <div className="rounded-[1.3rem] bg-[#071116] p-4 font-mono text-sm text-[#62d6ff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]">
+            {profileUrl}
+          </div>
+
+          <button onClick={handleCopy} className="btn btn-primary mt-4 w-full">
+            {copied ? "Copied to clipboard" : "Copy profile link"}
+          </button>
+
+          <div className="mt-6 rounded-[1.3rem] bg-white/[0.02] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+              Profile summary
+            </p>
+            <p className="mt-3 text-lg font-extrabold text-white">
+              {creator.displayName || "Unnamed Creator"}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#8aa0a8]">
+              {creator.bio || "Add a bio in settings to make your public profile more compelling."}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="dashboard-panel">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#71868d]">
+                Recent supporters
+              </p>
+              <h2 className="mt-2 text-2xl font-extrabold text-white">Incoming tip activity</h2>
+            </div>
+            <div className="dashboard-chip">
+              <LineChart size={14} />
+              Live queue
+            </div>
+          </div>
+
+          {creator.tipsReceived.length === 0 ? (
+            <div className="rounded-[1.5rem] bg-white/[0.015] py-14 text-center text-sm text-[#8aa0a8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)]">
+              No supporters yet. Your incoming tips will appear here.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {creator.tipsReceived.map((tip) => (
+                <ScrollReveal key={tip.id}>
+                  <div className="tip-row flex-col items-stretch md:flex-row md:items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-white/8 bg-white/[0.03]">
+                        {tip.fromUser.avatarUrl ? (
+                          <img
+                            src={tip.fromUser.avatarUrl}
+                            alt="Avatar"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-extrabold text-white">
+                            {(tip.fromUser.displayName || "A").slice(0, 1).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">
+                          {tip.fromUser.displayName || "Anonymous contributor"}
+                        </p>
+                        <p className="text-[11px] uppercase tracking-[0.18em] text-[#748a92]">
+                          {fmtTime(tip.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="md:ml-auto md:text-right">
+                      <p className="text-sm font-extrabold text-[#62d6ff]">
+                        +◎ {tip.amount.toFixed(4)}
+                      </p>
+                      {tip.message ? (
+                        <p className="mt-1 max-w-xl text-sm text-[#8ba1a9]">
+                          "{tip.message}"
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-sm text-[#6c838b]">No note attached</p>
+                      )}
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
@@ -232,11 +426,7 @@ export default function DashboardClientSwitcher() {
 
   return (
     <RequireAuth>
-      {role === "CREATOR" && userId ? (
-        <CreatorAnalytics userId={userId} />
-      ) : (
-        <DiscoverFeed />
-      )}
+      {role === "CREATOR" && userId ? <CreatorAnalytics userId={userId} /> : <DiscoverFeed />}
     </RequireAuth>
   );
 }

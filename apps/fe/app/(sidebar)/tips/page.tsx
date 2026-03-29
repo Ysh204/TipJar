@@ -1,100 +1,185 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { ArrowUpRight, Inbox, Send } from "lucide-react";
+
 import RequireAuth from "../../../components/RequireAuth";
-import { useTips } from "../../../hooks/tips";
 import ScrollReveal from "../../../components/ScrollReveal";
+import { useTips } from "../../../hooks/tips";
 
 function fmtTime(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
-    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 function shortSig(sig: string) {
-  return sig.slice(0, 10) + "…" + sig.slice(-4);
+  return sig.slice(0, 10) + "..." + sig.slice(-4);
 }
 
 export default function TipsPage() {
   const { sent, received, loading } = useTips();
-  const tips = { sent, received };
   const [activeTab, setActiveTab] = useState<"sent" | "received">("sent");
+
+  const activeTips = activeTab === "sent" ? sent : received;
+  const totals = useMemo(
+    () => ({
+      sentVolume: sent.reduce((sum: number, tip: any) => sum + tip.amount, 0),
+      receivedVolume: received.reduce((sum: number, tip: any) => sum + tip.amount, 0),
+    }),
+    [sent, received],
+  );
 
   return (
     <RequireAuth>
-      <div className="max-w-7xl mx-auto w-full" id="tips-history">
-        <header className="mb-12">
-          <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl landing-gradient">
-            Tip History
-          </h1>
-          <p className="text-slate-400 mt-2 font-medium">Track your community support and earnings</p>
+      <div className="mx-auto w-full max-w-[1500px]" id="tips-history">
+        <header className="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="animate-float-staking">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+              Tip <span className="landing-gradient">History</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-base text-[#8ba2aa]">
+              A tighter, more reference-inspired ledger view for outgoing support and incoming earnings.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="dashboard-chip">Sent ◎ {totals.sentVolume.toFixed(2)}</div>
+            <div className="dashboard-chip">Received ◎ {totals.receivedVolume.toFixed(2)}</div>
+          </div>
         </header>
 
-        <div className="flex gap-4 p-1.5 rounded-2xl bg-white/5 border border-white/10 w-fit mb-8 backdrop-blur-xl">
-           <button
-             onClick={() => setActiveTab("sent")}
-             className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "sent" ? "bg-teal-400/10 text-teal-400 border border-teal-400/20 shadow-[0_0_20px_rgba(45,212,191,0.05)]" : "text-slate-400 hover:text-white"}`}
-           >
-             Sent
-           </button>
-           <button
-             onClick={() => setActiveTab("received")}
-             className={`px-8 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === "received" ? "bg-indigo-400/10 text-indigo-400 border border-indigo-400/20 shadow-[0_0_20px_rgba(129,140,248,0.05)]" : "text-slate-400 hover:text-white"}`}
-           >
-             Received
-           </button>
-        </div>
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+          <div className="grid gap-4">
+            <div className="dashboard-panel">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#8b5cf6]/14 bg-[#8b5cf6]/10 text-[#b58cff]">
+                  <Send size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+                    Outgoing support
+                  </p>
+                  <h2 className="text-xl font-extrabold text-white">Tips you sent</h2>
+                </div>
+              </div>
+              <p className="text-4xl font-extrabold tracking-tight text-white">
+                ◎ {totals.sentVolume.toFixed(2)}
+              </p>
+              <p className="mt-3 text-sm text-[#8ba1a9]">{sent.length} transfers recorded.</p>
+            </div>
 
-        {loading ? (
-          <div className="flex flex-col gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="wallet-skeleton h-20 w-full rounded-2xl" />
-            ))}
+            <div className="dashboard-panel">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#62d6ff]/14 bg-[#62d6ff]/10 text-[#62d6ff]">
+                  <Inbox size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#71868d]">
+                    Incoming support
+                  </p>
+                  <h2 className="text-xl font-extrabold text-white">Tips you received</h2>
+                </div>
+              </div>
+              <p className="text-4xl font-extrabold tracking-tight text-white">
+                ◎ {totals.receivedVolume.toFixed(2)}
+              </p>
+              <p className="mt-3 text-sm text-[#8ba1a9]">{received.length} ledger entries tracked.</p>
+            </div>
           </div>
-        ) : (
-          <div className="card">
-            {tips[activeTab].length === 0 ? (
-              <div className="text-center py-20 opacity-30">
-                <p className="text-lg">No history recorded yet</p>
-                <p className="text-sm">Tips will appear here after the first transaction</p>
+
+          <div className="dashboard-panel">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#71868d]">
+                  Transaction monitor
+                </p>
+                <h2 className="mt-2 text-2xl font-extrabold text-white">On-chain tip stream</h2>
+              </div>
+
+              <div className="flex gap-2 rounded-[1.1rem] bg-white/[0.03] p-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">
+                <button
+                  onClick={() => setActiveTab("sent")}
+                  className={`rounded-[0.9rem] px-5 py-2.5 text-sm font-bold transition ${
+                    activeTab === "sent"
+                      ? "bg-[#8b5cf6]/12 text-[#b58cff]"
+                      : "text-[#81979f] hover:text-white"
+                  }`}
+                >
+                  Sent
+                </button>
+                <button
+                  onClick={() => setActiveTab("received")}
+                  className={`rounded-[0.9rem] px-5 py-2.5 text-sm font-bold transition ${
+                    activeTab === "received"
+                      ? "bg-[#62d6ff]/10 text-[#62d6ff]"
+                      : "text-[#81979f] hover:text-white"
+                  }`}
+                >
+                  Received
+                </button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="flex flex-col gap-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="wallet-skeleton h-20 w-full rounded-[1.2rem]" />
+                ))}
+              </div>
+            ) : activeTips.length === 0 ? (
+              <div className="rounded-[1.5rem] border border-dashed border-white/10 py-16 text-center text-sm text-[#8aa0a8]">
+                No {activeTab} tip history recorded yet.
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {tips[activeTab].map((tip: any) => (
+                {activeTips.map((tip: any) => (
                   <ScrollReveal key={tip.id}>
-                    <div className="tip-row group">
-                      <div className="flex items-center gap-4 flex-1">
-                         <div className={`w-12 h-12 rounded-full flex items-center justify-center border ${activeTab === "sent" ? "border-teal-400/20 bg-teal-400/10 text-teal-400" : "border-indigo-400/20 bg-indigo-400/10 text-indigo-400"}`}>
-                            {activeTab === "sent" ? (
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            ) : (
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            )}
-                         </div>
-                         <div className="flex flex-col gap-1">
-                            <span className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">
-                              {activeTab === "sent" ? `To: ${tip.toCreator.displayName}` : `From: ${tip.fromUser.displayName || 'Anonymous contributor'}`}
-                            </span>
-                            <span className="text-[10px] uppercase font-mono tracking-widest text-slate-500 opacity-70">
-                              {shortSig(tip.signature)}
-                            </span>
-                         </div>
+                    <div className="tip-row group flex-col items-stretch md:flex-row md:items-center">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
+                            activeTab === "sent"
+                              ? "border-[#8b5cf6]/14 bg-[#8b5cf6]/10 text-[#b58cff]"
+                              : "border-[#62d6ff]/14 bg-[#62d6ff]/10 text-[#62d6ff]"
+                          }`}
+                        >
+                          {activeTab === "sent" ? <Send size={18} /> : <Inbox size={18} />}
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-bold text-white">
+                            {activeTab === "sent"
+                              ? `To: ${tip.toCreator.displayName}`
+                              : `From: ${tip.fromUser.displayName || "Anonymous contributor"}`}
+                          </p>
+                          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-[#758b93]">
+                            {shortSig(tip.signature)}
+                          </p>
+                        </div>
                       </div>
-                      
-                      <div className="flex flex-col items-end gap-1">
-                         <span className={`text-lg font-black ${activeTab === "sent" ? "text-white" : "text-emerald-400"}`}>
-                            {activeTab === "sent" ? "-" : "+"} {tip.amount.toFixed(4)} SOL
-                         </span>
-                         <span className="text-[10px] text-slate-400">{fmtTime(tip.createdAt)}</span>
+
+                      <div className="md:ml-auto md:text-right">
+                        <p
+                          className={`text-lg font-extrabold ${
+                            activeTab === "sent" ? "text-white" : "text-[#62d6ff]"
+                          }`}
+                        >
+                          {activeTab === "sent" ? "-" : "+"}◎ {tip.amount.toFixed(4)}
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#80969e]">{fmtTime(tip.createdAt)}</p>
                       </div>
 
                       <a
                         href={`https://explorer.solana.com/tx/${tip.signature}?cluster=devnet`}
                         target="_blank"
                         rel="noreferrer"
-                        className="ml-4 p-2 rounded-lg bg-white/5 opacity-0 group-hover:opacity-100 transition-all hover:bg-white/10"
+                        className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.03] text-white/55 transition hover:text-[#b58cff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        <ArrowUpRight size={16} />
                       </a>
                     </div>
                   </ScrollReveal>
@@ -102,7 +187,7 @@ export default function TipsPage() {
               </div>
             )}
           </div>
-        )}
+        </section>
       </div>
     </RequireAuth>
   );

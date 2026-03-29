@@ -1,8 +1,18 @@
+<<<<<<< HEAD
 # TipJar — Creator Tipping Platform
 
 A creator tipping platform built on Solana, powered by MPC (Multi-Party Computation) wallets. Creators get secure wallets, fans tip in SOL And Can Stake Sol as well.
 
 [Demo video](https://youtu.be/N-0vY6_rnc0)
+=======
+# TipJar — Creator Tipping Platform
+
+A creator tipping platform built on Solana, powered by MPC (Multi-Party Computation) wallets. Creators get secure wallets, fans tip in SOL, and revenue splits automatically distribute to collaborators and the platform — all with on-chain transparency in a single, atomic transaction.
+
+## Demo
+
+[Watch Demo Here](./demo.mp4)
+>>>>>>> b54f7ff (Ui Updated)
 
 ---
 
@@ -138,7 +148,13 @@ bun turbo run dev
 ## How to Use
 
 ### Step 1: Create the First Admin
-Open Prisma Studio: `bunx prisma studio` inside `packages/db`. Create a user with role `ADMIN`.
+Use the bootstrap script instead of Prisma Studio:
+
+```bash
+bun run create-admin --email admin@example.com --password password123 --phone 1234567890 --display-name "Admin"
+```
+
+> This avoids Prisma Studio-only issues and gives you a clearer error if the email or phone is already in use.
 
 ### Step 2: Sign In as Admin
 ```
@@ -188,6 +204,9 @@ Headers: "Authorization: Bearer <admin_token>"
 
 ### "Wallet Not Found"
 The user must be created via the **Admin API** (`POST /admin/create-user`) for the MPC wallet to be initialized. Users created manually in Prisma Studio will not have an MPC wallet.
+
+### Prisma `P2002` on `phone`
+That means the phone number already exists in the `User` table. Use a different phone number, or query/delete the existing row before retrying.
 
 ### "Signature verification failed"
 *   **Precision Error**: Ensure you are sending a valid SOL amount. The system uses high-precision lamport math to prevent rounding errors.
