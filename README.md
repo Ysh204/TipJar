@@ -9,42 +9,6 @@ A creator tipping platform built on Solana, powered by MPC (Multi-Party Computat
 
 ## 🏗️ System Architecture & Data Flow
 
-🏗️ System Architecture & Data Flow
-
-```mermaid
-graph TD
-    %% Styling
-    classDef frontend fill:#1e1e2e,stroke:#b4befe,stroke-width:2px,color:#cdd6f4;
-    classDef backend fill:#181825,stroke:#fab387,stroke-width:2px,color:#cdd6f4;
-    classDef mpc fill:#11111b,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
-    classDef blockchain fill:#313244,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
-
-    %% Elements
-    FE[Next.js Frontend]:::frontend
-    BE[Express Gateway Backend]:::backend
-    DB[(PostgreSQL school_cms)]:::backend
-    Node1[MPC Node 1]:::mpc
-    Node2[MPC Node 2]:::mpc
-    MDB[(PostgreSQL mpc_db)]:::mpc
-    SOL[(Solana Devnet)]:::blockchain
-    SC[Custom Anchor Program]:::blockchain
-
-    %% Connections
-    FE --> BE
-    BE --> DB
-    BE --> Node1
-    BE --> Node2
-    Node1 --> MDB
-    MDB --> Node1
-    Node2 --> MDB
-    MDB --> Node2
-    Node1 --> BE
-    Node2 --> BE
-    BE --> SOL
-    FE --> SC
-    SC --> SOL
-    SOL --> SC
-
 ### Transaction Signing (Tipping with Splits)
 1. Each MPC node creates a partial nonce commitment.
 2. The system calculates the **1% Platform Fee** and any **Collaborator Splits**.
