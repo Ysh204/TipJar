@@ -38,15 +38,18 @@ graph TD
     BE -->|3. Orchestrate Signing| Node1
     BE -->|3. Orchestrate Signing| Node2
     
-    Node1 <-->|4. TSS Nonce Ceremony| MDB
-    Node2 <-->|4. TSS Nonce Ceremony| MDB
+    Node1 -->|4. TSS Nonce Ceremony| MDB
+    MDB --> Node1
+    Node2 -->|4. TSS Nonce Ceremony| MDB
+    MDB --> Node2
     
     Node1 -->|5. Partial Sig 1| BE
     Node2 -->|5. Partial Sig 2| BE
     
     BE -->|6. Aggregate & Broadcast Tx| SOL
     FE -->|Direct Contract Calls: Stake/Claim| SC
-    SC <-->|State Updates| SOL
+    SC -->|State Updates| SOL
+    SOL --> SC
 
 ### Transaction Signing (Tipping with Splits)
 1. Each MPC node creates a partial nonce commitment.
