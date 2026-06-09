@@ -7,6 +7,45 @@ A creator tipping platform built on Solana, powered by MPC (Multi-Party Computat
 
 ---
 
+## 🏗️ System Architecture & Data Flow
+
+```mermaid
+graph TD
+    %% Styling
+    classDef frontend fill:#1e1e2e,stroke:#b4befe,stroke-width:2px,color:#cdd6f4;
+    classDef backend fill:#181825,stroke:#fab387,stroke-width:2px,color:#cdd6f4;
+    classDef mpc fill:#11111b,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4;
+    classDef blockchain fill:#313244,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4;
+
+    %% Elements
+    FE[Next.js Frontend<br/>apps/fe]:::frontend
+    BE[Express Gateway Backend<br/>apps/backend]:::backend
+    DB[(PostgreSQL<br/>school_cms)]:::backend
+    
+    subgraph MPC_Network [MPC Threshold Signing Layer]
+        Node1[MPC Node 1<br/>apps/mpc-backend]:::mpc
+        Node2[MPC Node 2<br/>apps/mpc-backend]:::mpc
+        MDB[(PostgreSQL<br/>mpc_db)]:::mpc
+    end
+
+    SOL[(Solana Devnet)]:::blockchain
+    SC[Custom Anchor Program<br/>9iUwUFHk...QSGo]:::blockchain
+
+    %% Connections
+    FE -->|1. Request Action / Tip| BE
+    BE -->|2. Check User / Splits| DB
+    
+    BE -->|3. Orchestrate Signing| Node1
+    BE -->|3. Orchestrate Signing| Node2
+    Node1 & Node2 <-->|4. TSS Nonce Ceremony| MDB
+    
+    Node1 -->|5. Partial Sig 1| BE
+    Node2 -->|5. Partial Sig 2| BE
+    
+    BE -->|6. Aggregate & Broadcast Tx| SOL
+    FE -->|Direct Contract Calls: Stake/Claim| SC
+    SC <-->|State Updates| SOL
+
 ## Project Structure
 
 ### Apps
