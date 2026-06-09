@@ -37,7 +37,9 @@ graph TD
     
     BE -->|3. Orchestrate Signing| Node1
     BE -->|3. Orchestrate Signing| Node2
-    Node1 & Node2 <-->|4. TSS Nonce Ceremony| MDB
+    
+    Node1 <-->|4. TSS Nonce Ceremony| MDB
+    Node2 <-->|4. TSS Nonce Ceremony| MDB
     
     Node1 -->|5. Partial Sig 1| BE
     Node2 -->|5. Partial Sig 2| BE
@@ -45,58 +47,6 @@ graph TD
     BE -->|6. Aggregate & Broadcast Tx| SOL
     FE -->|Direct Contract Calls: Stake/Claim| SC
     SC <-->|State Updates| SOL
-
-## Project Structure
-
-### Apps
-- **`apps/backend`** (Port `3000`): Express API for auth, creator management, tipping, revenue splits, and MPC orchestration.
-- **`apps/mpc-backend`** (Port `3002`): MPC node that holds key shares and participates in threshold signing.
-- **`apps/fe`** (Port `4000`): Next.js frontend for creators and fans — discover creators, tip, manage wallets, and use the custom staking dashboard.
-
-### Packages
-- **`packages/solana-mpc-tss-lib`**: Custom-configured TypeScript wrapper/orchestration layer for Solana MPC/TSS signing flows used by this project’s backend and MPC nodes.
-- **`packages/db`**: Prisma schema for the main PostgreSQL DB (Users, Tips, Revenue Splits, w/ indices & timestamps).
-- **`packages/mpc-db`**: Prisma schema for MPC nodes — key shares.
-- **`packages/common`**: Shared Zod validation schemas (strict email, password, and phone validation) and Solana network config.
-
----
-
-## 🎨 UI & UX Improvements
-- **Collapsible Sidebar**: Fully responsive navigation; top mobile navbar with a hamburger menu, and fixed side-nav for desktop.
-- **Scroll-Reveal Animations**: Intersection Observer-based smooth fade-up animations on cards, wallets, and tip history rows.
-- **Modern Glassmorphism**: Premium deep-space aesthetic, fluid gradients, frosted glass (`backdrop-blur`), and active button micro-interactions (`active:scale-95`).
-- **Revenue Distribution**: Built-in 1% platform fee and custom creator revenue splits (e.g., 70/30) handled atomically on-chain.
-- **Integrated Staking Terminal**: Users can stake, request unstake, withdraw, and claim rewards from the same product experience instead of switching to a separate app.
-
----
-
-## 🔒 Security & Schema Specifications
-- **JWT Expiration**: User tokens expire in `7d`, Admin tokens expire in `1d`.
-- **Database Optimizations**: `updatedAt` on users/tips. `@@index` on `fromUserId`, `toCreatorId`, and `createdAt` for high performance querying.
-- **Strict Validations**: Enforced Zod `.email()`, `.min(6)` password, and required unique phone lengths.
-
----
-
-## MPC Key Architecture
-
-**No single complete private key ever exists.** Keys are split into shares across MPC nodes using threshold signatures.
-
-| Database | Table | What's Stored |
-|---|---|---|
-| `school_cms` (`packages/db`) | `User.publicKey` | Aggregated public key (wallet address) |
-| `mpc_db` (`packages/mpc-db`) | `KeyShare.secretKey` | One key share per node per user |
-
-### Key Generation Flow
-```text
-Admin calls POST /admin/create-user
-        │
-        ├──► MPC Node 1 → generates key share → stores in its mpc_db
-        ├──► MPC Node 2 → generates key share → stores in its mpc_db
-        └──► MPC Node N → generates key share → stores in its mpc_db
-        │
-        ▼
-Backend aggregates public keys → stores combined publicKey on User model
-```
 
 ### Transaction Signing (Tipping with Splits)
 1. Each MPC node creates a partial nonce commitment.
